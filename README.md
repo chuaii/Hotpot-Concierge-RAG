@@ -22,7 +22,8 @@
 
 ---
 
-![Order in a Hotpot Restaurant](https://github.com/chuaii/pictures/blob/main/hotpot_order.gif)  
+<img src="https://github.com/chuaii/pictures/blob/main/hotpot_order.gif" width="400">
+<!-- ![Order in a Hotpot Restaurant](https://github.com/chuaii/pictures/blob/main/hotpot_order.gif)   -->
 
 ## 快速开始（本地开发）
 
