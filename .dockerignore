@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# 本地数据
+chroma_data/
+
+# IDE
+.vscode/
+.idea/
+.cursor/
+*.code-workspace
+
+# Git
+.git/
+.gitignore
+
+# Docker 自身
+Dockerfile
+docker-compose*.yml
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 环境文件（不要打包密钥到镜像里，用 Cloud Run 环境变量传入）
+.env
+.env.*

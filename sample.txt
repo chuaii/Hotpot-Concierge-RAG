@@ -1,0 +1,1 @@
+RAG（Retrieval-Augmented Generation）是一种结合检索与生成的技术。它先根据用户问题从知识库中检索相关文档片段，再把这些片段和问题一起交给大语言模型生成答案。这样既能利用外部知识，又能减少模型“幻觉”。本系统使用 Chroma 作为向量数据库，使用 sentence-transformers 做文本向量化。支持中文的默认模型是 paraphrase-multilingual-MiniLM-L12-v2。你可以把长文本存入知识库，然后通过提问获得基于这些内容的回答。若设置了环境变量 OPENAI_API_KEY，系统会调用 GPT 根据检索内容生成简洁答案；未设置时则只返回检索到的原文片段。

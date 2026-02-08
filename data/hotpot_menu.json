@@ -1,0 +1,151 @@
+{
+    "shop_name": "示例火锅店",
+    "shop_name_en": "Asian Hot Pot",
+    "soup_bases": [
+        {
+            "id": "tomato",
+            "name_cn": "番茄锅",
+            "name_en": "Tomato broth",
+            "popularity_rank": 1,
+            "spicy": false,
+            "description_cn": "酸甜开胃，不辣，适合老人小孩和不吃辣的客人",
+            "description_en": "Sweet and sour, not spicy. Best for first-timers and those who don't like spice.",
+            "recommended_for": ["first-timers", "children", "non-spicy"]
+        },
+        {
+            "id": "spicy_sichuan",
+            "name_cn": "川味麻辣锅",
+            "name_en": "Sichuan spicy broth",
+            "popularity_rank": 2,
+            "spicy": true,
+            "description_cn": "经典川味，麻辣鲜香，最受年轻人欢迎",
+            "description_en": "Classic Sichuan numbing-spicy. Most popular with young guests.",
+            "recommended_for": ["spicy lovers"]
+        },
+        {
+            "id": "bone",
+            "name_cn": "大骨汤锅",
+            "name_en": "Pork bone broth",
+            "popularity_rank": 3,
+            "spicy": false,
+            "description_cn": "清淡鲜香，适合涮肉和海鲜",
+            "description_en": "Mild and savory. Great for meat and seafood.",
+            "recommended_for": ["all"]
+        },
+        {
+            "id": "yinyang",
+            "name_cn": "鸳鸯锅",
+            "name_en": "Yin-yang (half spicy, half mild)",
+            "popularity_rank": 1,
+            "spicy": "half",
+            "description_cn": "一半辣一半不辣，一桌人口味不同时首选",
+            "description_en": "Half spicy, half mild. Top choice when the table has mixed preferences.",
+            "recommended_for": ["groups", "mixed taste"]
+        }
+    ],
+    "ingredients": [
+        {
+            "id": "sliced_beef",
+            "name_cn": "肥牛片",
+            "name_en": "Sliced fatty beef",
+            "category": "meat",
+            "portion_per_person": 1.5,
+            "unit_cn": "份",
+            "unit_en": "portion",
+            "popularity_rank": 1,
+            "notes_en": "Most ordered meat. 1 portion ≈ 150g."
+        },
+        {
+            "id": "sliced_lamb",
+            "name_cn": "羊肉片",
+            "name_en": "Sliced lamb",
+            "category": "meat",
+            "portion_per_person": 1.0,
+            "unit_cn": "份",
+            "unit_en": "portion",
+            "popularity_rank": 2,
+            "notes_en": "Very popular. 1 portion ≈ 150g."
+        },
+        {
+            "id": "pork_belly",
+            "name_cn": "五花肉片",
+            "name_en": "Sliced pork belly",
+            "category": "meat",
+            "portion_per_person": 0.8,
+            "unit_cn": "份",
+            "unit_en": "portion",
+            "popularity_rank": 4,
+            "notes_en": "1 portion ≈ 120g."
+        },
+        {
+            "id": "shrimp",
+            "name_cn": "鲜虾",
+            "name_en": "Fresh shrimp",
+            "category": "seafood",
+            "portion_per_person": 0.5,
+            "unit_cn": "份",
+            "unit_en": "portion",
+            "popularity_rank": 3,
+            "notes_en": "1 portion ≈ 6–8 pieces. Popular with foreign guests."
+        },
+        {
+            "id": "fish_balls",
+            "name_cn": "鱼丸",
+            "name_en": "Fish balls",
+            "category": "seafood",
+            "portion_per_person": 0.5,
+            "unit_cn": "份",
+            "unit_en": "portion",
+            "popularity_rank": 5,
+            "notes_en": "1 portion ≈ 6 pieces."
+        },
+        {
+            "id": "tofu",
+            "name_cn": "嫩豆腐",
+            "name_en": "Soft tofu",
+            "category": "tofu",
+            "portion_per_person": 0.5,
+            "unit_cn": "份",
+            "unit_en": "portion",
+            "popularity_rank": 6,
+            "notes_en": "1 portion = 1 block. Good in tomato broth."
+        },
+        {
+            "id": "lettuce",
+            "name_cn": "生菜",
+            "name_en": "Lettuce",
+            "category": "vegetable",
+            "portion_per_person": 0.4,
+            "unit_cn": "份",
+            "unit_en": "portion",
+            "popularity_rank": 7,
+            "notes_en": "1 portion = 1 small basket. Light and refreshing."
+        },
+        {
+            "id": "potato_slices",
+            "name_cn": "土豆片",
+            "name_en": "Potato slices",
+            "category": "vegetable",
+            "portion_per_person": 0.5,
+            "unit_cn": "份",
+            "unit_en": "portion",
+            "popularity_rank": 8,
+            "notes_en": "1 portion = 1 plate. Filling; don't order too much."
+        },
+        {
+            "id": "noodles",
+            "name_cn": "火锅面",
+            "name_en": "Hot pot noodles",
+            "category": "staple",
+            "portion_per_person": 0.3,
+            "unit_cn": "份",
+            "unit_en": "portion",
+            "popularity_rank": 9,
+            "notes_en": "Order at the end to finish in the broth. 1 portion is enough for 2–3 people to share."
+        }
+    ],
+    "portion_notes": {
+        "cn": "以上 portion_per_person 为「每人推荐份数」，一桌总份数 = 人数 × 每人份数，可酌情四舍五入。例如 4 人点肥牛：4×1.5=6 份。",
+        "en": "portion_per_person = recommended portions per person. Total portions for table = guests × portion_per_person (round as needed). E.g. 4 guests, beef: 4×1.5 = 6 portions."
+    }
+}

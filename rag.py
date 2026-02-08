@@ -1,0 +1,118 @@
+# -*- coding: utf-8 -*-
+"""
+RAG 系统核心（基于 LangChain + Gemini）：文本摄取、向量存储、检索与问答。
+"""
+from pathlib import Path
+
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain_core.documents import Document
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+from langchain_classic.chains.combine_documents import create_stuff_documents_chain
+from langchain_classic.chains import create_retrieval_chain
+
+from llm import get_llm
+
+# 默认配置
+DEFAULT_CHUNK_SIZE = 500
+DEFAULT_CHUNK_OVERLAP = 50
+DEFAULT_COLLECTION_NAME = "rag_docs"
+DEFAULT_EMBED_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
+DEFAULT_PERSIST_DIR = "./chroma_data"
+
+
+def _get_embeddings(model_name: str = DEFAULT_EMBED_MODEL) -> HuggingFaceEmbeddings:
+    return HuggingFaceEmbeddings(model_name=model_name)
+
+
+def _get_vectorstore(
+    collection_name: str,
+    persist_directory: str,
+    embedding_function: HuggingFaceEmbeddings,
+):
+    Path(persist_directory).mkdir(parents=True, exist_ok=True)
+    return Chroma(
+        collection_name=collection_name,
+        embedding_function=embedding_function,
+        persist_directory=persist_directory,
+    )
+
+
+class RAG:
+    """RAG：基于 LangChain 的文本录入、向量存储与检索问答（Gemini）。"""
+
+    def __init__(
+        self,
+        collection_name: str = DEFAULT_COLLECTION_NAME,
+        persist_directory: str = DEFAULT_PERSIST_DIR,
+        embed_model_name: str = DEFAULT_EMBED_MODEL,
+        chunk_size: int = DEFAULT_CHUNK_SIZE,
+        chunk_overlap: int = DEFAULT_CHUNK_OVERLAP,
+    ):
+        self.collection_name = collection_name
+        self.persist_directory = persist_directory
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
+        self._embeddings = _get_embeddings(embed_model_name)
+        self._vectorstore = _get_vectorstore(
+            collection_name, persist_directory, self._embeddings
+        )
+        self._text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            length_function=len,
+            separators=["\n\n", "\n", "。", "！", "？", "；", " ", ""],
+        )
+
+    def _get_rag_chain(self, top_k: int = 5):
+        retriever = self._vectorstore.as_retriever(search_kwargs={"k": top_k})
+        llm = get_llm(temperature=0, max_output_tokens=500)
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "你是一个助手。请仅根据下面提供的【参考内容】回答问题。若参考内容中没有相关信息，请明确说「参考内容中未提及」。不要编造内容。"),
+            ("human", "【参考内容】\n{context}\n\n【问题】\n{input}"),
+        ])
+        combine_docs_chain = create_stuff_documents_chain(llm, prompt)
+        return create_retrieval_chain(retriever, combine_docs_chain)
+
+    def ingest_text(self, text: str) -> int:
+        if not text or not text.strip():
+            return 0
+        docs = [Document(page_content=text.strip())]
+        splits = self._text_splitter.split_documents(docs)
+        if not splits:
+            return 0
+        self._vectorstore.add_documents(splits)
+        return len(splits)
+
+    def ingest_file(self, file_path: str, encoding: str = "utf-8") -> int:
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"文件不存在: {file_path}")
+        text = path.read_text(encoding=encoding)
+        return self.ingest_text(text)
+
+    def retrieve(self, query: str, top_k: int = 5) -> list[str]:
+        docs = self._vectorstore.similarity_search(query, k=top_k)
+        return [d.page_content for d in docs]
+
+    def query(
+        self,
+        question: str,
+        top_k: int = 5,
+        use_llm: bool = True,
+    ) -> str:
+        if use_llm:
+            try:
+                chain = self._get_rag_chain(top_k)
+                result = chain.invoke({"input": question})
+                return result.get("answer", "") or "当前知识库中没有相关内容，无法回答。"
+            except Exception as e:
+                chunks = self.retrieve(question, top_k=top_k)
+                context = "\n\n".join(chunks) if chunks else ""
+                return f"调用 Gemini 失败: {e}\n\n检索到的内容：\n{context}"
+        chunks = self.retrieve(question, top_k=top_k)
+        if not chunks:
+            return "当前知识库中没有相关内容，无法回答。"
+        return "根据检索到的内容：\n\n" + "\n\n".join(chunks)

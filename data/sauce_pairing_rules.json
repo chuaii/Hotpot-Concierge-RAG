@@ -1,0 +1,61 @@
+{
+    "description": "风味图谱：锅底+主料 -> 推荐蘸料搭配（解辣/增香/提鲜）",
+    "rules": [
+        {
+            "broth_tags": ["spicy", "sichuan"],
+            "ingredient_tags": ["tripe", "beef", "offal"],
+            "sauce_recipe": [
+                "蒜泥 + 香油 + 香菜（解辣增香）",
+                "Garlic paste + sesame oil + cilantro (cools spice, adds fragrance)"
+            ],
+            "reason_cn": "牛油辣锅配内脏类，蒜泥香油经典搭配解辣",
+            "reason_en": "Spicy broth with offal: garlic and sesame oil classic pairing"
+        },
+        {
+            "broth_tags": ["spicy", "sichuan"],
+            "ingredient_tags": ["seafood", "shrimp"],
+            "sauce_recipe": [
+                "海鲜汁 + 小米椒 + 少许醋",
+                "Seafood sauce + bird's eye chili + a little vinegar"
+            ],
+            "reason_cn": "辣锅涮海鲜用海鲜汁提鲜",
+            "reason_en": "Spicy broth with seafood: seafood sauce enhances umami"
+        },
+        {
+            "broth_tags": ["tomato", "mild"],
+            "ingredient_tags": ["beef", "lamb"],
+            "sauce_recipe": [
+                "海鲜汁 + 牛肉粒 + 香菜（网红吃法）",
+                "Seafood sauce + beef bits + cilantro (popular combo)"
+            ],
+            "reason_cn": "番茄锅配肥牛/羊肉，海鲜汁+牛肉粒提鲜",
+            "reason_en": "Tomato broth with beef/lamb: seafood sauce + beef bits"
+        },
+        {
+            "broth_tags": ["bone", "mild"],
+            "ingredient_tags": ["meat", "vegetable"],
+            "sauce_recipe": [
+                "芝麻酱 + 腐乳 + 韭菜花（北方经典）",
+                "Sesame paste + fermented tofu + chive flower (northern style)"
+            ],
+            "reason_cn": "大骨清汤配肉菜，麻酱腐乳经典",
+            "reason_en": "Bone broth with meat and veg: sesame paste classic"
+        },
+        {
+            "broth_tags": ["yinyang", "half"],
+            "ingredient_tags": [],
+            "sauce_recipe": [
+                "辣侧：干碟（辣椒面+花生碎+芝麻）",
+                "不辣侧：香油蒜泥或海鲜汁",
+                "Spicy side: dry dip (chili powder + crushed peanuts + sesame); Mild side: sesame oil + garlic or seafood sauce"
+            ],
+            "reason_cn": "鸳鸯锅可双蘸料，按涮哪边选",
+            "reason_en": "Yin-yang: two sauces for two sides"
+        }
+    ],
+    "default_sauce": {
+        "sauce_recipe": ["蒜泥 + 香油 + 蚝油 + 香菜 + 葱花"],
+        "reason_cn": "万能蘸料，适合多数锅底与食材",
+        "reason_en": "All-purpose dipping sauce"
+    }
+}
