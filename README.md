@@ -22,6 +22,8 @@
 
 ---
 
+![Order in a Hotpot Restaurant](https://github.com/chuaii/pictures/blob/main/hotpot_order.gif)  
+
 ## 快速开始（本地开发）
 
 ### 1. 环境准备
