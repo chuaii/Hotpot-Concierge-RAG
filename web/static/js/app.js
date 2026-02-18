@@ -2,7 +2,7 @@
  * 智能火锅点餐顾问 - 前端逻辑
  */
 const chatArea = document.getElementById('chat-area');
-const userInput = document.getElementById('user-input');
+const userInput = document.getElementById('user-input');  // 可能不存在（已移除输入栏时）
 const sendBtn   = document.getElementById('send-btn');
 const form      = document.getElementById('input-bar');
 
@@ -41,7 +41,15 @@ function addOrderCard(json) {
   scrollToBottom();
 }
 
+function archivePreviousRecommendCards() {
+  document.querySelectorAll('.recommend-checklist:not(.recommend-checklist--archived)').forEach(function(c) {
+    c.classList.add('recommend-checklist--archived');
+    c.querySelectorAll('input[type="checkbox"]').forEach(function(cb) { cb.disabled = true; });
+  });
+}
+
 function addRecommendCard(data) {
+  archivePreviousRecommendCards();
   const card = document.createElement('div');
   card.className = 'order-card recommend-checklist';
   const title = document.createElement('div');
@@ -57,12 +65,14 @@ function addRecommendCard(data) {
   countEl.style.marginBottom = '8px';
   card.appendChild(countEl);
   const list = document.createElement('ul');
+  list.className = 'recommend-list';
   list.style.margin = '0';
   list.style.paddingLeft = '0';
   list.style.listStyle = 'none';
   list.style.lineHeight = '1.8';
   list.style.fontSize = '0.9rem';
-  list.style.maxHeight = '320px';
+  list.style.minHeight = '420px';
+  list.style.maxHeight = '65vh';
   list.style.overflowY = 'auto';
   const allItems = data.all_items || data.items || [];
   allItems.forEach(function(it) {
@@ -98,6 +108,7 @@ function addRecommendCard(data) {
   chatArea.appendChild(card);
   updateRecommendCount(card);
   scrollToBottom();
+  if (typeof updateConfirmOrderState === 'function') updateConfirmOrderState();
 }
 
 function updateRecommendCount(cardEl) {
@@ -170,8 +181,8 @@ async function sendMessage(text, context) {
   if (!text.trim()) return;
 
   addMessage(text, 'user');
-  userInput.value = '';
-  sendBtn.disabled = true;
+  if (userInput) userInput.value = '';
+  if (sendBtn) sendBtn.disabled = true;
   showTyping();
 
   try {
@@ -205,20 +216,38 @@ async function sendMessage(text, context) {
     removeTyping();
     addMessage('网络错误：' + err.message + '，请稍后重试。', 'system');
   } finally {
-    sendBtn.disabled = false;
-    userInput.focus();
+    if (sendBtn) sendBtn.disabled = false;
+    if (userInput) userInput.focus();
   }
 }
 
-form.addEventListener('submit', function(e) {
-  e.preventDefault();
-  sendMessage(userInput.value);
-});
+if (form) {
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (userInput) sendMessage(userInput.value);
+  });
+}
 
-document.querySelectorAll('.quick-btn').forEach(function(btn) {
+document.querySelectorAll('.quick-btn:not(#btn-confirm-order)').forEach(function(btn) {
   btn.addEventListener('click', function() {
     sendMessage(btn.dataset.msg);
   });
+});
+
+// 确认下单：需有食材推荐（预选菜单）且已选至少一款锅底
+var btnConfirmOrder = document.getElementById('btn-confirm-order');
+function updateConfirmOrderState() {
+  var hasRecommend = !!document.querySelector('.recommend-checklist');
+  var hasBroth = getTotalBrothCount() > 0;
+  btnConfirmOrder.disabled = !hasRecommend || !hasBroth;
+  var tips = [];
+  if (!hasRecommend) tips.push('点击「食材推荐」生成预选菜单');
+  if (!hasBroth) tips.push('在「锅底选择」中至少选择一款锅底');
+  btnConfirmOrder.title = tips.length ? '请先：' + tips.join('；') : '';
+}
+btnConfirmOrder.addEventListener('click', function() {
+  if (btnConfirmOrder.disabled) return;
+  sendMessage(btnConfirmOrder.dataset.msg);
 });
 
 // 锅底知识目录（20 种，与菜单一致）
@@ -264,9 +293,55 @@ brothTrigger.addEventListener('click', function(e) {
 
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.broth-knowledge-wrap')) closeBrothDropdown();
+  if (!e.target.closest('.ingredient-knowledge-wrap')) closeIngredientDropdown();
   if (!e.target.closest('.broth-select-wrap')) closeBrothSelectDropdown();
   if (!e.target.closest('.allergy-wrap')) closeAllergyDropdown();
 });
+
+// ---------- 食材信息（67 种，与菜单一致） ----------
+var ingredientTrigger = document.getElementById('ingredient-trigger');
+var ingredientDropdown = document.getElementById('ingredient-dropdown');
+
+function toggleIngredientDropdown() {
+  var isOpen = ingredientDropdown.classList.toggle('open');
+  ingredientTrigger.classList.toggle('open', isOpen);
+  ingredientTrigger.setAttribute('aria-expanded', isOpen);
+}
+
+function closeIngredientDropdown() {
+  ingredientDropdown.classList.remove('open');
+  ingredientTrigger.classList.remove('open');
+  ingredientTrigger.setAttribute('aria-expanded', 'false');
+}
+
+fetch('/api/ingredients')
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    var list = data.ingredients || [];
+    list.forEach(function(it) {
+      var nameCn = it.name_cn || '';
+      var nameEn = it.name_en || '';
+      var label = nameCn + (nameEn ? ' / ' + nameEn : '');
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ingredient-option';
+      btn.setAttribute('role', 'option');
+      btn.textContent = label;
+      btn.addEventListener('click', function() {
+        sendMessage(nameCn + '有什么特点和涮煮建议？');
+        closeIngredientDropdown();
+      });
+      ingredientDropdown.appendChild(btn);
+    });
+  })
+  .catch(function() {});
+
+if (ingredientTrigger) {
+  ingredientTrigger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleIngredientDropdown();
+  });
+}
 
 // ---------- 过敏目录 ----------
 var allergyTrigger = document.getElementById('allergy-trigger');
@@ -335,6 +410,7 @@ function updateBrothSelectUI() {
     btnMinus.disabled = n <= 0;
     btnPlus.disabled = total >= max;
   });
+  if (typeof updateConfirmOrderState === 'function') updateConfirmOrderState();
 }
 
 function toggleBrothSelectDropdown() {
@@ -433,16 +509,32 @@ document.getElementById('btn-recommend').addEventListener('click', function() {
   userMsg += '，推荐一份预选食材（含肉、海鲜、蔬菜、豆制品、主食）。';
   addMessage(userMsg, 'user');
 
-  sendBtn.disabled = true;
+  if (sendBtn) sendBtn.disabled = true;
   showTyping();
 
   var body = { num_guests: numGuests, allergies: allergies };
   if (sessionId) body.session_id = sessionId;
 
-  fetch('/api/recommend', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+  // 再推荐前先同步当前卡片的勾选状态到后端，确保迁移时用最新数据
+  var latestCard = document.querySelector('.recommend-checklist:not(.recommend-checklist--archived)');
+  var syncPromise = Promise.resolve();
+  if (latestCard && sessionId) {
+    var cart = [];
+    latestCard.querySelectorAll('input[type="checkbox"][data-id]').forEach(function(cb) {
+      if (cb.checked && cb.getAttribute('data-id')) cart.push(cb.getAttribute('data-id'));
+    });
+    syncPromise = fetch('/api/cart/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId, cart: cart })
+    }).then(function(r) { return r.json(); }).then(function() {});
+  }
+  syncPromise.then(function() {
+    return fetch('/api/recommend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
   })
     .then(function(res) { return res.json(); })
     .then(function(data) {
@@ -453,10 +545,12 @@ document.getElementById('btn-recommend').addEventListener('click', function() {
     })
     .catch(function(err) {
       removeTyping();
-      addMessage('获取推荐失败：' + err.message, 'system');
+      addMessage('获取推荐失败：' + (err.message || err), 'system');
     })
     .finally(function() {
-      sendBtn.disabled = false;
-      userInput.focus();
+      if (sendBtn) sendBtn.disabled = false;
+      if (userInput) userInput.focus();
     });
 });
+
+updateConfirmOrderState();

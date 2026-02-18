@@ -73,9 +73,10 @@ def _auto_ingest():
 
 # ---------- 知识类问题路由 ----------
 KNOWLEDGE_KEYWORDS = [
-    "是什么", "什么是", "怎么", "如何", "为什么", "适合", "区别",
+    "是什么", "什么是", "有什么", "怎么", "如何", "为什么", "适合", "区别",
     "技巧", "注意", "热量", "健康", "营养", "过敏", "禁忌",
     "多久", "几分钟", "礼仪", "知识", "介绍", "推荐理由",
+    "特点", "涮煮", "建议", "适合什么人",
     "蘸料", "dipping", "how", "what", "why", "recommend",
     "allergy", "healthy", "calorie", "tip",
 ]
@@ -87,6 +88,39 @@ def _is_knowledge_query(text: str) -> bool:
     if len(t) < 4:
         return False
     return any(kw in t for kw in KNOWLEDGE_KEYWORDS)
+
+
+def _expand_rag_query_for_ingredient_or_broth(user_msg: str) -> tuple[str, str | None]:
+    """
+    对「XX有什么特点/涮煮建议」类问题做查询扩展，补上英文名与关键词；
+    并返回匹配到的食材/锅底名，供检索后重排优先命中。
+    返回 (扩展后的问题, 用于重排的食材名或 None)。
+    """
+    t = user_msg.strip()
+    if not t:
+        return user_msg, None
+    menu = load_menu()
+    # 先匹配食材：按中文名长度降序，优先长名称（如「豆腐皮」先于「豆腐」）
+    ingredients = sorted(
+        menu.get("ingredients", []),
+        key=lambda x: len((x.get("name_cn") or "").strip()),
+        reverse=True,
+    )
+    for it in ingredients:
+        nc = (it.get("name_cn") or "").strip()
+        ne = (it.get("name_en") or "").strip()
+        if (nc and t.startswith(nc)) or (ne and t.startswith(ne)):
+            extra = " ".join(filter(None, [ne, nc, "介绍", "涮煮", "时间", "特点", "丸子", "煮法", "分钟", "口感"]))
+            return f"{user_msg} {extra}", nc or ne
+    # 再匹配锅底
+    soup_bases = menu.get("soup_bases", [])
+    for b in soup_bases:
+        nc = (b.get("name_cn") or "").strip()
+        ne = (b.get("name_en") or "").strip()
+        if (nc and t.startswith(nc)) or (ne and t.startswith(ne)):
+            extra = " ".join(filter(None, [ne, nc, "介绍", "特点", "适合"]))
+            return f"{user_msg} {extra}", nc or ne
+    return user_msg, None
 
 
 # ---------- 内存 Session Store ----------
@@ -186,7 +220,14 @@ async def chat(req: ChatRequest):
     if state and _is_confirm(user_msg):
         cart = state.get("cart") or []
         profile = state.get("customer_profile") or {}
+        broths = profile.get("broths") or []
         if cart and profile:
+            if not broths:
+                return ChatResponse(
+                    session_id=session_id,
+                    reply="请先在「锅底选择」中至少选择一款锅底，再确认下单。",
+                    source="concierge",
+                )
             try:
                 order = generate_order_struct(profile, cart)
                 order_dict = order.model_dump()
@@ -239,7 +280,8 @@ async def chat(req: ChatRequest):
     if _is_knowledge_query(user_msg):
         try:
             rag = _get_rag()
-            answer = rag.query(user_msg, top_k=3)
+            rag_question, boost_name = _expand_rag_query_for_ingredient_or_broth(user_msg)
+            answer = rag.query(rag_question, top_k=8, boost_contains=boost_name)
             return ChatResponse(session_id=session_id, reply=answer, source="rag")
         except Exception as e:
             return ChatResponse(
@@ -272,12 +314,26 @@ async def chat(req: ChatRequest):
 
 @app.post("/api/recommend", response_model=RecommendResponse)
 async def recommend(req: RecommendRequest):
-    """根据人数与过敏项生成预选食材，并存入 session。"""
+    """根据人数与过敏项生成预选食材，并存入 session。再推荐时合并用户过往的增减。"""
     session_id = req.session_id or str(uuid.uuid4())
     num_guests = max(1, min(6, req.num_guests))
     allergies = [a.strip() for a in (req.allergies or []) if a and a.strip()]
     items, total = recommend_items(num_guests, allergies)
-    cart_ids = [it.get("id") for it in items if it.get("id")]
+    new_ids = [it.get("id") for it in items if it.get("id")]
+    new_ids_set = set(new_ids)
+
+    # 再推荐时：合并用户过往的勾选/取消、添加的食材到新推荐
+    if session_id in _sessions:
+        old_state = _sessions[session_id]
+        old_cart = set(old_state.get("cart") or [])
+        old_rec_ids = set(old_state.get("last_recommendation_ids") or [])
+        merged = (old_cart & new_ids_set) | (old_cart - old_rec_ids) | (new_ids_set - old_rec_ids)
+        cart_ids = list(merged)
+    else:
+        cart_ids = list(new_ids)
+        old_cart = set()
+        old_rec_ids = set()
+
     profile = {
         "spice_tolerance": "medium",
         "allergies": allergies,
@@ -289,6 +345,7 @@ async def recommend(req: RecommendRequest):
     }
     _sessions[session_id] = {
         "cart": cart_ids,
+        "last_recommendation_ids": new_ids_set,
         "customer_profile": profile,
         "messages": [],
     }
@@ -356,6 +413,17 @@ async def cart_update(req: CartUpdateRequest):
     cart = [iid for iid in req.cart if iid in valid_ids]
     _sessions[session_id] = {**state, "cart": cart}
     return {"ok": True, "cart": cart, "total": len(cart)}
+
+
+@app.get("/api/ingredients")
+async def list_ingredients():
+    """返回全部食材列表（id/name_cn/name_en），供前端「食材信息」下拉使用。"""
+    menu = load_menu()
+    items = [
+        {"id": it.get("id"), "name_cn": it.get("name_cn"), "name_en": it.get("name_en")}
+        for it in menu.get("ingredients", [])
+    ]
+    return {"ingredients": items}
 
 
 @app.get("/api/health")

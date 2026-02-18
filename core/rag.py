@@ -2,6 +2,7 @@
 """
 RAG 系统核心（基于 LangChain + Gemini）：文本摄取、向量存储、检索与问答。
 """
+import re
 from pathlib import Path
 
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -76,6 +77,15 @@ class RAG:
         combine_docs_chain = create_stuff_documents_chain(llm, prompt)
         return create_retrieval_chain(retriever, combine_docs_chain)
 
+    def _get_combine_chain(self):
+        """返回仅组合文档的 chain（不包含 retriever），用于传入已重排的 docs。"""
+        llm = get_llm(temperature=0, max_output_tokens=500)
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "你是一个助手。请仅根据下面提供的【参考内容】回答问题。若参考内容中没有相关信息，请明确说「参考内容中未提及」。不要编造内容。"),
+            ("human", "【参考内容】\n{context}\n\n【问题】\n{input}"),
+        ])
+        return create_stuff_documents_chain(llm, prompt)
+
     def ingest_text(self, text: str) -> int:
         if not text or not text.strip():
             return 0
@@ -91,7 +101,34 @@ class RAG:
         if not path.exists():
             raise FileNotFoundError(f"文件不存在: {file_path}")
         text = path.read_text(encoding=encoding)
+        # 若包含 67 种食材章节，则将该章节按「一种食材一块」打散，避免鱼丸/虾丸/墨鱼丸等易混食材挤在同一块里
+        if "【67 种食材详细介绍】" in text or "■ 蔬菜类" in text:
+            return self._ingest_file_with_ingredient_splitting(text)
         return self.ingest_text(text)
+
+    def _ingest_file_with_ingredient_splitting(self, text: str) -> int:
+        """前半部分按原分块录入；67 种食材段按「一条食材一个 chunk」打散录入，便于单种食材检索。"""
+        marker = "【67 种食材详细介绍】"
+        idx = text.find(marker)
+        if idx == -1:
+            idx = text.find("■ 蔬菜类")
+        if idx == -1:
+            return self.ingest_text(text)
+        main_part = text[:idx].strip()
+        ingredients_section = text[idx:].strip()
+        n_main = 0
+        if main_part:
+            n_main = self.ingest_text(main_part)
+        # 按行首「数字. 」拆成一条条食材，每种食材单独成块
+        chunks = re.split(r"\n(?=\d+\. )", ingredients_section)
+        n_ing = 0
+        for c in chunks:
+            c = c.strip()
+            if not c or not re.match(r"^\d+\. ", c):
+                continue
+            self._vectorstore.add_documents([Document(page_content=c)])
+            n_ing += 1
+        return n_main + n_ing
 
     def retrieve(self, query: str, top_k: int = 5) -> list[str]:
         docs = self._vectorstore.similarity_search(query, k=top_k)
@@ -102,9 +139,32 @@ class RAG:
         question: str,
         top_k: int = 5,
         use_llm: bool = True,
+        boost_contains: str | None = None,
     ) -> str:
+        """若提供 boost_contains（如食材名「竹轮」「海带」），先多取 2 倍候选再按「是否含该名」重排，优先命中对应块。"""
         if use_llm:
             try:
+                if boost_contains:
+                    # 主检索：扩大候选池以覆盖全部 67 种食材独立 chunk
+                    fetch_k = 120
+                    docs = self._vectorstore.similarity_search(question, k=fetch_k)
+                    key = boost_contains.strip()
+                    # 若主检索结果中不含该名，用纯食材名做备用检索（应对鱿鱼花、火锅云吞等向量相似度偏低的）
+                    if not any(key in d.page_content for d in docs):
+                        fallback = self._vectorstore.similarity_search(key, k=10)
+                        seen = {d.page_content for d in docs}
+                        for d in fallback:
+                            if d.page_content not in seen:
+                                docs.append(d)
+                                seen.add(d.page_content)
+                    docs_sorted = sorted(
+                        docs,
+                        key=lambda d: (0 if key in d.page_content else 1),
+                    )
+                    docs_top = docs_sorted[:top_k]
+                    combine_chain = self._get_combine_chain()
+                    result = combine_chain.invoke({"context": docs_top, "input": question})
+                    return result.get("answer", "") or "当前知识库中没有相关内容，无法回答。"
                 chain = self._get_rag_chain(top_k)
                 result = chain.invoke({"input": question})
                 return result.get("answer", "") or "当前知识库中没有相关内容，无法回答。"

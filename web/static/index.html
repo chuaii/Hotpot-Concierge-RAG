@@ -25,6 +25,12 @@
     </button>
     <div class="broth-dropdown" id="broth-dropdown" role="listbox"></div>
   </div>
+  <div class="ingredient-knowledge-wrap">
+    <button type="button" class="ingredient-trigger" id="ingredient-trigger" aria-expanded="false">
+      🥬 食材信息 <span class="arrow">▼</span>
+    </button>
+    <div class="ingredient-dropdown" id="ingredient-dropdown" role="listbox"></div>
+  </div>
   <button class="quick-btn" data-msg="蘸料怎么调最好吃？">🔍 蘸料推荐</button>
   <div class="guest-select-wrap">
     <label for="guest-select">人数</label>
@@ -58,13 +64,8 @@
     </div>
   </div>
   <button type="button" class="quick-btn" id="btn-recommend">🍲 食材推荐</button>
-  <button class="quick-btn" data-msg="确认">✅ 确认下单</button>
+  <button type="button" class="quick-btn" id="btn-confirm-order" data-msg="确认" disabled>✅ 确认下单</button>
 </div>
-
-<form id="input-bar" autocomplete="off">
-  <input id="user-input" type="text" placeholder="请输入您的需求…" autofocus />
-  <button type="submit" id="send-btn">发送</button>
-</form>
 
 <script src="/static/js/app.js"></script>
 
