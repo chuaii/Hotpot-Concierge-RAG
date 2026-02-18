@@ -8,7 +8,6 @@ from concierge.menu_loader import get_all_items_with_prices, load_menu
 # ---------- 人数 → 总份数规定 ----------
 GUESTS_TO_PORTIONS = {1: 8, 2: 10, 3: 12, 4: 14, 5: 16, 6: 17}
 
-# 人气菜品固定顺序
 DEFAULT_RECOMMEND_IDS = [
     "bean_sprouts",
     "potato_slices",

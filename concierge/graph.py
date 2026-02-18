@@ -14,7 +14,7 @@ from .menu_loader import get_all_broths_with_prices, get_all_items_with_prices, 
 from .state import OrderState
 
 # llm.py 位于项目根目录，由入口脚本保证 sys.path 包含项目根
-from llm import get_llm
+from core.llm import get_llm
 
 
 def _ensure_profile(state: OrderState) -> dict:

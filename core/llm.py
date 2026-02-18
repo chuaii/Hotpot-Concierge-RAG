@@ -4,6 +4,7 @@
 需要设置环境变量 GOOGLE_API_KEY。
 """
 import os
+
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 DEFAULT_MODEL = "gemini-2.0-flash"

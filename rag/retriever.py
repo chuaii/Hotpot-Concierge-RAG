@@ -13,7 +13,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 from langchain_classic.chains import create_retrieval_chain
 
-from llm import get_llm
+from core.llm import get_llm
 
 # 默认配置
 DEFAULT_CHUNK_SIZE = 500
