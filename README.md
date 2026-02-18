@@ -2,8 +2,10 @@
 
 基于 **LangChain + Google Gemini + LangGraph + ChromaDB + FastAPI** 的 Web 应用。
 
-- **RAG 知识问答**：将火锅知识文档（`data/*.txt`）录入 ChromaDB，用户提问时检索并由 Gemini 生成答案。
+- **RAG 知识问答**：将火锅知识文档（`data/*.txt`）录入 ChromaDB，用户提问时检索并由 Gemini 生成答案。支持按食材/锅底名扩展查询，提升检索精度。
 - **智能点餐顾问**：LangGraph 多轮对话（辣度、忌口、人数）→ 菜品推荐 → 结构化订单 JSON。自助餐固定每人价格，无需询问预算。
+- **食材推荐**：根据人数与过敏项（海鲜/面筋/花生）自动推荐食材，支持多选勾选、购物车增减；过敏自动替换为替代品。
+- **锅底与蘸料**：锅底多选、风味图谱蘸料推荐（`sauce_pairing`），订单含 `dipping_sauce_recipe`。
 - **前置路由**：API 自动区分「知识问题」与「点餐请求」，分别走 RAG 或 Concierge。
 - **一键部署**：Docker + Google Cloud Run。
 
@@ -33,7 +35,7 @@
 
 ---
 
-## 项目结构（四层）
+## 项目结构
 
 ```
 RAG/
@@ -61,11 +63,18 @@ RAG/
 │   ├── __init__.py
 │   ├── app.py             # FastAPI 应用（路由、Session、RAG 单例）
 │   ├── schemas.py         # 请求/响应模型
-│   ├── recommendation.py  # 食材推荐与购物车解析
+│   ├── recommendation.py  # 食材推荐与购物车解析（人数→份数、过敏替换）
 │   └── static/            # 前端
 │       ├── index.html
 │       ├── css/style.css
 │       └── js/app.js
+├── test/                  # 单元测试
+│   ├── test_rag_core.py
+│   ├── test_rag_ingredients.py
+│   ├── test_menu_loader.py
+│   ├── test_menu_generator.py
+│   ├── test_recommendation.py
+│   └── test_sauce_pairing.py
 ├── Dockerfile
 ├── .dockerignore
 ├── .env.example
@@ -135,6 +144,7 @@ python main.py ingest data/your_file.txt
   "broths": [{"name_cn": "番茄火锅汤底", "quantity": 1}]
 }
 ```
+`num_guests`、`allergies`、`broths` 由前端「人数」「过敏」「锅底选择」传入，会合并到 session 用于下单。
 
 **响应（知识问答 → RAG）：**
 ```json
@@ -160,7 +170,7 @@ python main.py ingest data/your_file.txt
 ```json
 {
   "session_id": "uuid",
-  "reply": "已按您的要求生成订单 ✅",
+  "reply": "已按您的要求生成订单，如下可交厨房执行 ✅",
   "source": "concierge",
   "order_json": {
     "broth_id": "tomato",
@@ -200,6 +210,10 @@ python main.py ingest data/your_file.txt
 }
 ```
 
+### `GET /api/ingredients`
+
+返回全部食材列表（`id` / `name_cn` / `name_en`），供前端「食材信息」下拉等使用。
+
 ### `GET /api/health`
 
 健康检查。
@@ -207,6 +221,14 @@ python main.py ingest data/your_file.txt
 ### `GET /`
 
 前端页面（web/static/index.html）。
+
+---
+
+## 运行测试
+
+```bash
+python -m unittest discover -s test -v
+```
 
 ---
 
