@@ -4,3 +4,7 @@ __pycache__/
 *.pyc
 chroma_data/
 .env
+
+### PyCharm ###
+# User-specific stuff
+.idea
