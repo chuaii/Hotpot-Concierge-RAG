@@ -23,7 +23,6 @@ def _ensure_profile(state: OrderState) -> dict:
         "allergies": [],
         "dislikes": [],
         "preferences": [],
-        "budget_max": None,
         "num_guests": 1,
         "language": "zh",
     }
@@ -49,13 +48,12 @@ def profiler_node(state: OrderState) -> dict:
     llm = get_llm(temperature=0.2, max_output_tokens=400)
 
     system_prompt = (
-        "你是火锅店点餐顾问。根据用户至今的发言，更新并输出客户画像（JSON），并判断是否还需要追问。\n"
+        "你是火锅店点餐顾问。本店为自助餐，每人价格固定，无需询问预算。根据用户至今的发言，更新并输出客户画像（JSON），并判断是否还需要追问。\n"
         "画像字段：\n"
         "  spice_tolerance: none / mild / medium / high（注意：用户说'变态辣'应映射为 high）\n"
         "  allergies: 忌口/过敏列表\n"
         "  dislikes: 不喜欢的食材或口感列表\n"
         "  preferences: 偏好列表（如 crunchy, tender, seafood）\n"
-        "  budget_max: 数字或 null（如用户说'预算150'，则为 150）\n"
         "  num_guests: 用餐人数（整数）\n"
         "  language: zh / en\n\n"
         "判断规则：若用户已给出辣度、人数、忌口（哪怕没有忌口也算明确），则 need_more=false。\n"
@@ -161,33 +159,23 @@ def reviewer_node(state: OrderState) -> dict:
     lang = profile.get("language", "zh")
 
     lines = []
-    total = broth.get("price", 28.0)
     if lang == "en":
-        lines.append(f"Broth: {broth.get('name_en', broth.get('name_cn'))} (¥{broth.get('price', 28)})")
+        lines.append(f"Broth: {broth.get('name_en', broth.get('name_cn'))}")
         for iid in cart:
             it = by_id.get(iid, {})
             ppp = it.get("portion_per_person", 1.0)
             qty = max(0.5, round(ppp * num_guests, 1))
-            price = it.get("price_per_portion", 20.0)
-            sub = round(price * qty, 1)
-            total += sub
-            lines.append(f"  - {it.get('name_en', it.get('name_cn'))} × {qty} portions (¥{sub})")
-        lines.append(f"\nEstimated total: ¥{round(total)}")
+            lines.append(f"  - {it.get('name_en', it.get('name_cn'))} × {qty} portions")
+        lines.append("\nAll You Can Eat: fixed price per person, unlimited toppings.")
         lines.append("Does this look good? Reply 'confirm' to place the order, or tell me what to change.")
     else:
-        lines.append(f"锅底：{broth.get('name_cn', broth.get('name_en'))}（¥{broth.get('price', 28)}）")
+        lines.append(f"锅底：{broth.get('name_cn', broth.get('name_en'))}")
         for iid in cart:
             it = by_id.get(iid, {})
             ppp = it.get("portion_per_person", 1.0)
             qty = max(0.5, round(ppp * num_guests, 1))
-            price = it.get("price_per_portion", 20.0)
-            sub = round(price * qty, 1)
-            total += sub
-            lines.append(f"  - {it.get('name_cn', it.get('name_en'))} × {qty}份（¥{sub}）")
-        lines.append(f"\n预估总价：¥{round(total)}")
-        budget = profile.get("budget_max")
-        if budget and total > budget:
-            lines.append(f"⚠ 超出预算（¥{budget}），可以告诉我去掉哪些或减少份数。")
+            lines.append(f"  - {it.get('name_cn', it.get('name_en'))} × {qty}份")
+        lines.append("\n自助餐每人固定价格，食材无限量。")
         lines.append("满意的话回复「确认」生成订单，或告诉我要调整的地方。")
 
     return {

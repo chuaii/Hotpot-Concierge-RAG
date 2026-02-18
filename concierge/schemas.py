@@ -19,17 +19,27 @@ class MenuItem(BaseModel):
     )
     quantity: float = Field(ge=0.1, description="数量（份数）")
     unit: str = Field(default="portion", description="单位，如 portion")
-    price: float = Field(ge=0, description="单价")
     reason: str = Field(default="", description="推荐理由，为何符合客人口味/需求")
+
+
+class BrothSelection(BaseModel):
+    """订单中的单种锅底及份数。"""
+    broth_id: str = Field(description="锅底ID")
+    broth_name_cn: str = Field(description="锅底中文名")
+    broth_name_en: str = Field(default="", description="锅底英文名")
+    quantity: int = Field(ge=1, description="份数")
 
 
 class HotpotOrder(BaseModel):
     """火锅订单（结构化输出，机器可读）。"""
-    broth_id: str = Field(description="锅底ID，如 tomato, spicy_sichuan, yinyang")
-    broth_name_cn: str = Field(description="锅底中文名")
-    broth_name_en: str = Field(default="", description="锅底英文名")
+    broth_id: str = Field(description="主锅底ID（兼容单锅底或多锅底时第一个）")
+    broth_name_cn: str = Field(description="主锅底中文名")
+    broth_name_en: str = Field(default="", description="主锅底英文名")
+    broths: list[BrothSelection] = Field(
+        default_factory=list,
+        description="所选锅底列表（含份数），为空时用 broth_id 表示单锅底",
+    )
     items: list[MenuItem] = Field(description="菜品明细，仅包含店内有的 menu_item_id")
-    total_estimate: float = Field(ge=0, description="预估总价")
     num_guests: int = Field(ge=1, description="用餐人数")
     dipping_sauce_recipe: list[str] = Field(
         default_factory=list,
@@ -39,11 +49,10 @@ class HotpotOrder(BaseModel):
 
 # ---------- 对话中使用的客户画像（LangGraph state 的一部分） ----------
 class CustomerProfile(BaseModel):
-    """从多轮对话中抽取的客户偏好（用于菜单推荐与订单生成）。"""
+    """从多轮对话中抽取的客户偏好（用于菜单推荐与订单生成）。自助餐固定每人价格，无需预算。"""
     spice_tolerance: Literal["none", "mild", "medium", "high"] = "medium"
     allergies: list[str] = Field(default_factory=list, description="忌口/过敏，如 peanuts, lamb")
     dislikes: list[str] = Field(default_factory=list, description="不喜欢的食材或口感，如 offal")
     preferences: list[str] = Field(default_factory=list, description="偏好，如 crunchy, tender, seafood")
-    budget_max: float | None = Field(default=None, ge=0, description="预算上限（元）")
     num_guests: int = Field(default=1, ge=1, description="用餐人数")
     language: Literal["zh", "en"] = "zh"

@@ -6,7 +6,7 @@
 from pathlib import Path
 
 from .menu_loader import get_all_broths_with_prices, get_all_items_with_prices, load_menu
-from .schemas import HotpotOrder, MenuItem
+from .schemas import BrothSelection, HotpotOrder, MenuItem
 from .sauce_pairing import calc_sauce_pairing
 
 
@@ -39,21 +39,45 @@ def generate_order_struct(
     brooths = get_all_broths_with_prices(menu)
     items = get_all_items_with_prices(menu)
     by_id = {it["id"]: it for it in items}
-    broth_id = customer_profile.get("broth_id") or "tomato"
-    broth = next((b for b in brooths if b["id"] == broth_id), brooths[0] if brooths else {})
     num_guests = max(1, int(customer_profile.get("num_guests") or 1))
+
+    # 多锅底：来自前端的 profile["broths"]；否则单锅底 profile["broth_id"]
+    brooths_list = customer_profile.get("broths") or []
+    if brooths_list:
+        order_broths = []
+        for b in brooths_list:
+            bid = b.get("broth_id") or b.get("id")
+            name_cn = b.get("name_cn") or ""
+            name_en = b.get("name_en") or ""
+            qty = max(1, int(b.get("quantity", 1)))
+            order_broths.append(
+                BrothSelection(broth_id=bid, broth_name_cn=name_cn, broth_name_en=name_en, quantity=qty)
+            )
+        first = order_broths[0]
+        broth_id = first.broth_id
+        broth = next((x for x in brooths if x["id"] == broth_id), brooths[0] if brooths else {})
+    else:
+        broth_id = customer_profile.get("broth_id") or "tomato"
+        broth = next((b for b in brooths if b["id"] == broth_id), brooths[0] if brooths else {})
+        order_broths = [
+            BrothSelection(
+                broth_id=broth_id,
+                broth_name_cn=broth.get("name_cn", ""),
+                broth_name_en=broth.get("name_en", ""),
+                quantity=1,
+            )
+        ]
+
     context = _menu_context(menu)
 
     # 仅允许 cart 中存在的 id，并计算份数（按每人推荐份数）
     order_items: list[MenuItem] = []
-    total = 0.0
     for iid in cart:
         it = by_id.get(iid)
         if not it:
             continue
         portion_per = it.get("portion_per_person", 1.0)
         qty = max(0.5, round(portion_per * num_guests, 1))
-        price = it.get("price_per_portion", 20.0)
         order_items.append(
             MenuItem(
                 menu_item_id=iid,
@@ -62,14 +86,11 @@ def generate_order_struct(
                 category=it.get("category", "meat"),
                 quantity=qty,
                 unit=it.get("unit_en", "portion"),
-                price=price,
                 reason="",
             )
         )
-        total += price * qty
-    total += broth.get("price", 28.0)
 
-    # 蘸料：风味图谱
+    # 蘸料：风味图谱（用第一个锅底）
     sauce_result = calc_sauce_pairing(broth_id, cart, menu_path)
     recipe = sauce_result.get("sauce_recipe") or ["蒜泥+香油+蚝油+香菜"]
 
@@ -77,8 +98,8 @@ def generate_order_struct(
         broth_id=broth_id,
         broth_name_cn=broth.get("name_cn", ""),
         broth_name_en=broth.get("name_en", ""),
+        broths=order_broths,
         items=order_items,
-        total_estimate=round(total, 2),
         num_guests=num_guests,
         dipping_sauce_recipe=recipe if isinstance(recipe, list) else [recipe],
     )

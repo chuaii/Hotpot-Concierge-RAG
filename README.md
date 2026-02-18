@@ -3,7 +3,7 @@
 基于 **LangChain + Google Gemini + LangGraph + ChromaDB + FastAPI** 实现的 Web 应用。
 
 - **RAG 知识问答**：火锅知识文档录入向量数据库（ChromaDB），用户提问时检索相关内容并由 Gemini 生成答案。
-- **智能点餐顾问**：LangGraph 多轮对话引导（辣度、忌口、预算、人数）→ 菜品推荐 → 结构化厨房订单 JSON。
+- **智能点餐顾问**：LangGraph 多轮对话引导（辣度、忌口、人数）→ 菜品推荐 → 结构化厨房订单 JSON。自助餐固定每人价格，无需询问预算。
 - **前置路由**：API 自动识别「知识问题」与「点餐请求」，分别走 RAG 或 Concierge。
 - **一键部署**：Docker + Google Cloud Run。
 
@@ -27,7 +27,7 @@
 ```
 用户消息 → API 前置路由
   ├─ 知识类问题（"肥牛涮多久？"） → RAG 检索 + Gemini 生成答案
-  └─ 点餐请求（"微辣、4人、预算200"） → LangGraph Concierge 多轮对话
+  └─ 点餐请求（"微辣、4人"） → LangGraph Concierge 多轮对话
                                            └─ 确认 → Pydantic 结构化订单
 ```
 
@@ -120,7 +120,6 @@ python main.py ingest your_file.txt
     "broth_id": "spicy_sichuan",
     "broth_name_cn": "麻辣锅",
     "items": [...],
-    "total_estimate": 186.5,
     "num_guests": 4,
     "dipping_sauce_recipe": ["蒜泥+香油+蚝油+香菜"]
   }

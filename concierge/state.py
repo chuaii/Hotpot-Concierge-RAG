@@ -15,7 +15,7 @@ from langgraph.graph.message import add_messages
 class OrderState(TypedDict, total=False):
     """点餐对话状态。"""
     messages: Annotated[list[Any], add_messages]
-    customer_profile: dict          # spice_tolerance, allergies, preferences, budget_max, num_guests, broth_id
+    customer_profile: dict          # spice_tolerance, allergies, preferences, num_guests, broth_id
     current_step: str               # preference_gathering | menu_generation | sauce_recommendation
     cart: list[str]                 # 暂存的菜品 ID（menu_item_id）
     confirmed: bool                 # 用户是否已确认方案
