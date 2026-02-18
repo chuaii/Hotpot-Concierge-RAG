@@ -10,7 +10,7 @@ import argparse
 import os
 import sys
 
-from rag import RAG
+from core import RAG
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
     ingest_p.add_argument("file", type=str, help="文本文件路径（UTF-8）")
     ingest_p.add_argument("--encoding", type=str, default="utf-8")
     ingest_p.add_argument("--collection", type=str, default="rag_docs")
-    ingest_p.add_argument("--persist", type=str, default="./chroma_data")
+    ingest_p.add_argument("--persist", type=str, default="data/chroma_data")
 
     sub.add_parser("serve", help="启动 Web 服务（FastAPI + Uvicorn）")
 

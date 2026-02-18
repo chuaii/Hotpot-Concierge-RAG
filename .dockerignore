@@ -11,8 +11,9 @@ build/
 venv/
 env/
 
-# 本地数据
+# 本地数据（向量库等）
 chroma_data/
+data/chroma_data/
 
 # IDE
 .vscode/

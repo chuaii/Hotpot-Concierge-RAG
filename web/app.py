@@ -15,9 +15,9 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from langchain_core.messages import AIMessage
 
+from core import RAG
 from concierge import generate_order_struct, run_concierge_once
 from concierge.menu_loader import get_all_items_with_prices, load_menu
-from rag import RAG
 
 from .recommendation import (
     ALLERGY_GLUTEN,
@@ -42,10 +42,10 @@ from .schemas import (
 
 load_dotenv()
 
-# 项目根目录（web 上一级）
+# 项目根目录（web 上一级），数据目录与静态目录
 _ROOT = Path(__file__).resolve().parent.parent
 _KNOWLEDGE_DIR = _ROOT / "data"
-_KNOWLEDGE_FILE = _ROOT / "sample.txt"
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 # ---------- RAG 单例 ----------
 _rag: RAG | None = None
@@ -59,16 +59,12 @@ def _get_rag() -> RAG:
 
 
 def _auto_ingest():
-    """启动时自动将知识文档灌入向量数据库（幂等：ChromaDB 会去重）。"""
+    """启动时自动将 data/*.txt 灌入向量数据库（幂等：ChromaDB 会去重）。"""
     rag = _get_rag()
-    files_to_ingest = []
-    if _KNOWLEDGE_FILE.exists():
-        files_to_ingest.append(_KNOWLEDGE_FILE)
-    for f in _KNOWLEDGE_DIR.glob("*.txt"):
-        if f not in files_to_ingest:
-            files_to_ingest.append(f)
+    if not _KNOWLEDGE_DIR.exists():
+        return
     total = 0
-    for f in files_to_ingest:
+    for f in _KNOWLEDGE_DIR.glob("*.txt"):
         n = rag.ingest_file(str(f))
         total += n
     if total > 0:
@@ -367,8 +363,7 @@ async def health():
     return {"status": "ok"}
 
 
-# ---------- 静态文件 ----------
-STATIC_DIR = _ROOT / "static"
+# ---------- 静态文件（前后端一体：web/static） ----------
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 

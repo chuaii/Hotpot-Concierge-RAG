@@ -13,14 +13,14 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 from langchain_classic.chains import create_retrieval_chain
 
-from core.llm import get_llm
+from .llm import get_llm
 
 # 默认配置
 DEFAULT_CHUNK_SIZE = 500
 DEFAULT_CHUNK_OVERLAP = 50
 DEFAULT_COLLECTION_NAME = "rag_docs"
 DEFAULT_EMBED_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
-DEFAULT_PERSIST_DIR = "./chroma_data"
+DEFAULT_PERSIST_DIR = "data/chroma_data"
 
 
 def _get_embeddings(model_name: str = DEFAULT_EMBED_MODEL) -> HuggingFaceEmbeddings:
