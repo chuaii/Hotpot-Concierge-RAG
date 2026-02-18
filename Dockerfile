@@ -1,5 +1,6 @@
 # ============================================================
-# 智能火锅点餐顾问 - Docker 镜像（Cloud Run 部署）
+# 智能火锅点餐顾问 + RAG - Docker 镜像（Cloud Run 部署）
+# 启动时自动将 sample.txt 录入 ChromaDB 向量数据库
 # ============================================================
 FROM python:3.11-slim
 
@@ -20,5 +21,5 @@ COPY . .
 ENV PORT=8080
 EXPOSE 8080
 
-# 启动 FastAPI（gunicorn + uvicorn worker 适合生产环境）
+# 启动 FastAPI（lifespan 中自动 ingest 知识文档到 RAG）
 CMD exec uvicorn api:app --host 0.0.0.0 --port ${PORT} --workers 1

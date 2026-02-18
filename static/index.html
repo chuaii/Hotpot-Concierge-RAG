@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🍲 智能火锅点餐顾问</title>
+  <title>🍲 智能火锅点餐顾问 + RAG</title>
   <style>
     :root {
       --primary: #e74c3c;
@@ -79,6 +79,22 @@
       color: var(--text);
       border: 1px solid var(--border);
       border-bottom-left-radius: 4px;
+    }
+    .source-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .source-tag.rag {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .source-tag.concierge {
+      background: #fff3e0;
+      color: #e65100;
     }
 
     .msg.system {
@@ -202,17 +218,19 @@
 
 <header>
   <h1>🍲 智能火锅点餐顾问</h1>
-  <p>Agentic Hotpot Concierge — 告诉我您的口味，为您量身推荐</p>
+  <p>RAG 知识问答 + 智能点餐顾问 — 有问必答，量身推荐</p>
 </header>
 
 <div id="chat-area">
-  <div class="msg system">欢迎光临！请描述您的需求，例如：「微辣、不吃羊肉、预算200元、4个人」</div>
+  <div class="msg system">欢迎光临！您可以提问火锅知识（如「肥牛涮多久最好？」），也可以直接点餐（如「微辣、不吃羊肉、预算200元、4个人」）。</div>
 </div>
 
 <div id="quick-actions">
-  <button class="quick-btn" data-msg="微辣、不吃羊肉、预算200元、4个人">4人微辣套餐</button>
-  <button class="quick-btn" data-msg="变态辣、预算150元、3个人">3人变态辣</button>
-  <button class="quick-btn" data-msg="I want mild broth, no lamb, budget 300 yuan, 6 people">English order</button>
+  <button class="quick-btn" data-msg="肥牛涮多久最好吃？">🔍 涮肉技巧</button>
+  <button class="quick-btn" data-msg="番茄锅适合减肥吗？">🔍 锅底知识</button>
+  <button class="quick-btn" data-msg="蘸料怎么调最好吃？">🔍 蘸料推荐</button>
+  <button class="quick-btn" data-msg="微辣、不吃羊肉、预算200元、4个人">🍲 4人微辣套餐</button>
+  <button class="quick-btn" data-msg="变态辣、预算150元、3个人">🍲 3人变态辣</button>
   <button class="quick-btn" data-msg="确认">✅ 确认下单</button>
 </div>
 
@@ -233,10 +251,17 @@ function scrollToBottom() {
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-function addMessage(text, role) {
+function addMessage(text, role, source) {
   const div = document.createElement('div');
   div.className = `msg ${role}`;
-  div.textContent = text;
+  if (role === 'ai' && source && source !== 'system') {
+    const tag = document.createElement('span');
+    tag.className = `source-tag ${source}`;
+    tag.textContent = source === 'rag' ? 'RAG 知识库' : '点餐顾问';
+    div.appendChild(tag);
+    div.appendChild(document.createElement('br'));
+  }
+  div.appendChild(document.createTextNode(text));
   chatArea.appendChild(div);
   scrollToBottom();
 }
@@ -293,7 +318,7 @@ async function sendMessage(text) {
     sessionId = data.session_id;
 
     removeTyping();
-    addMessage(data.reply, 'ai');
+    addMessage(data.reply, 'ai', data.source);
 
     if (data.order_json) {
       addOrderCard(data.order_json);

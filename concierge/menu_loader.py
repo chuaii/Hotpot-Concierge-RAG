@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-加载火锅菜单与价格，为 RAG/库存检索与结构化订单提供数据。
+加载火锅菜单与价格，为菜品推荐与结构化订单提供数据。
 """
 import json
 from pathlib import Path

@@ -16,7 +16,7 @@ def get_menu_by_preference(
     menu_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """
-    根据口味与忌口从菜单中筛选推荐菜品（可用于 RAG/库存检索后的二次过滤）。
+    根据口味与忌口从菜单中筛选推荐菜品。
     ADK 工具描述：Get recommended menu items by spice tolerance, allergies, and guest count.
     """
     menu = load_menu(menu_path)

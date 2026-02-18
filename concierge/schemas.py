@@ -39,7 +39,7 @@ class HotpotOrder(BaseModel):
 
 # ---------- 对话中使用的客户画像（LangGraph state 的一部分） ----------
 class CustomerProfile(BaseModel):
-    """从多轮对话中抽取的客户偏好（用于 RAG 检索与菜单生成）。"""
+    """从多轮对话中抽取的客户偏好（用于菜单推荐与订单生成）。"""
     spice_tolerance: Literal["none", "mild", "medium", "high"] = "medium"
     allergies: list[str] = Field(default_factory=list, description="忌口/过敏，如 peanuts, lamb")
     dislikes: list[str] = Field(default_factory=list, description="不喜欢的食材或口感，如 offal")
