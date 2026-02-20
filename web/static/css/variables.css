@@ -1,0 +1,13 @@
+/* 智能火锅点餐顾问 - CSS 变量 */
+:root {
+  --primary: #e74c3c;
+  --primary-dark: #c0392b;
+  --bg: #faf7f5;
+  --card: #ffffff;
+  --text: #2c3e50;
+  --text-light: #7f8c8d;
+  --border: #ecf0f1;
+  --user-bubble: #e74c3c;
+  --ai-bubble: #f8f9fa;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}

@@ -1,0 +1,285 @@
+/* 智能火锅点餐顾问 - 组件样式 */
+
+/* Quick actions */
+#quick-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+}
+.quick-btn {
+  padding: 6px 14px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text);
+}
+.quick-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #fef5f5;
+}
+.quick-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+/* 锅底知识 */
+.broth-knowledge-wrap { position: relative; }
+.broth-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text);
+}
+.broth-trigger:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #fef5f5;
+}
+.broth-trigger .arrow { font-size: 0.7rem; transition: transform 0.2s; }
+.broth-trigger.open .arrow { transform: rotate(180deg); }
+.broth-dropdown {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  width: 260px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 10;
+  padding: 6px 0;
+}
+.broth-dropdown.open { display: block; }
+.broth-option {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.15s;
+}
+.broth-option:hover { background: #fef5f5; color: var(--primary); }
+.broth-dropdown::-webkit-scrollbar { width: 6px; }
+.broth-dropdown::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+/* 食材信息 */
+.ingredient-knowledge-wrap { position: relative; }
+.ingredient-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text);
+}
+.ingredient-trigger:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #fef5f5;
+}
+.ingredient-trigger .arrow { font-size: 0.7rem; transition: transform 0.2s; }
+.ingredient-trigger.open .arrow { transform: rotate(180deg); }
+.ingredient-dropdown {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  width: 260px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 10;
+  padding: 6px 0;
+}
+.ingredient-dropdown.open { display: block; }
+.ingredient-option {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.15s;
+}
+.ingredient-option:hover { background: #fef5f5; color: var(--primary); }
+.ingredient-dropdown::-webkit-scrollbar { width: 6px; }
+.ingredient-dropdown::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+/* 人数选项 */
+.guest-select-wrap { display: inline-flex; align-items: center; gap: 6px; }
+.guest-select-wrap label { font-size: 0.82rem; color: var(--text); white-space: nowrap; }
+.guest-select {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  min-width: 4rem;
+}
+.guest-select:focus { outline: none; border-color: var(--primary); }
+
+/* 锅底选择 */
+.broth-select-wrap { position: relative; }
+.broth-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text);
+}
+.broth-select-trigger:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #fef5f5;
+}
+.broth-select-trigger .arrow { font-size: 0.7rem; transition: transform 0.2s; }
+.broth-select-trigger.open .arrow { transform: rotate(180deg); }
+.broth-select-dropdown {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  width: 260px;
+  max-height: 340px;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 10;
+  padding: 8px 12px;
+}
+.broth-select-dropdown.open { display: block; }
+.broth-select-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+.broth-select-row .broth-name { flex: 1; min-width: 0; }
+.broth-stepper { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.broth-stepper button {
+  width: 24px; height: 24px; padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+  font-size: 1rem; line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.broth-stepper button:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #fef5f5;
+}
+.broth-stepper button:disabled { opacity: 0.45; cursor: not-allowed; }
+.broth-stepper .broth-num { min-width: 1.4rem; text-align: center; font-weight: 600; }
+.broth-select-count {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+.broth-select-dropdown::-webkit-scrollbar { width: 6px; }
+.broth-select-dropdown::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+/* 过敏 */
+.allergy-wrap { position: relative; }
+.allergy-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text);
+}
+.allergy-trigger:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #fef5f5;
+}
+.allergy-trigger .arrow { font-size: 0.7rem; transition: transform 0.2s; }
+.allergy-trigger.open .arrow { transform: rotate(180deg); }
+.allergy-dropdown {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  width: 200px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 10;
+  padding: 10px 12px;
+}
+.allergy-dropdown.open { display: block; }
+.allergy-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 0.88rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.allergy-option input { cursor: pointer; accent-color: var(--primary); }
+.allergy-count {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}

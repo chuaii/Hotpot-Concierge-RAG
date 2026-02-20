@@ -225,10 +225,31 @@ python main.py ingest data/your_file.txt
 ---
 
 ## 运行测试
-
+#### Unit test
 ```bash
 python -m unittest discover -s test -v
 ```
+包含文件：
++ test_menu_loader.py
++ test_sauce_pairing.py
++ test_menu_generator.py
++ test_recommendation.py
++ test_rag_core.py
+
+特点：不依赖 LLM，不调用 Gemini，全部为纯逻辑测试
+依赖：需要 `data/hotpot_menu.json` 等数据文件；`test_rag_core.py` 会加载 embedding 模型，首次可能较慢
+#### RAG 食材命中测试（独立脚本）test_rag_ingredients.py
+检查 67 种食材检索命中(no LLM)
+```bash
+python test/test_rag_ingredients.py
+```
+检查 67 种食材回答是否有幻觉(with LLM, 需 API)
+```bash
+python test/test_rag_ingredients.py --with-llm
+```
+依赖：
+已录入知识库（启动过 web 或运行过 ingest），且存在 data/chroma_data
+使用 --with-llm 时需配置 Gemini API（GOOGLE_API_KEY）
 
 ---
 
@@ -250,22 +271,20 @@ python -m unittest discover -s test -v
 2. 安装 [gcloud CLI](https://cloud.google.com/sdk/docs/install)  
 3. 获取 [Google API Key](https://aistudio.google.com/app/apikey)  
 
-### 一键部署
+### 一键部署 (每次更新都要重新部署`gcloud run deploy .....`)
 
 ```bash
+cd 当前工作目录路径
 gcloud auth login
-gcloud config set project YOUR_PROJECT_ID
+gcloud config set project `YOUR_PROJECT_ID`
 
-gcloud run deploy hotpot-concierge \
-  --source . \
-  --region asia-east1 \
-  --allow-unauthenticated \
-  --set-env-vars GOOGLE_API_KEY=你的API密钥
+gcloud run deploy hotpot-concierge --source . --region asia-east1 --allow-unauthenticated --memory 4Gi --set-env-vars GOOGLE_API_KEY=你的API密钥
 ```
 
 ### 或手动构建 Docker
 
 ```bash
+cd 当前工作目录路径
 docker build -t hotpot-concierge .
 docker run -p 8080:8080 -e GOOGLE_API_KEY=你的key hotpot-concierge
 ```

@@ -16,6 +16,26 @@ from langchain_classic.chains import create_retrieval_chain
 
 from .llm import get_llm
 
+_EMPTY_ANSWER = "当前知识库中没有相关内容，无法回答。"
+
+
+def _extract_answer(result) -> str:
+    """从链的返回值中安全提取文本答案。
+
+    create_retrieval_chain 返回 dict（含 "answer" 键），
+    create_stuff_documents_chain 可能直接返回 str / AIMessage / TextAccessor 等。
+    """
+    if isinstance(result, dict):
+        answer = result.get("answer", "")
+    else:
+        answer = result
+
+    if hasattr(answer, "content"):
+        answer = answer.content
+    if not isinstance(answer, str):
+        answer = str(answer)
+    return answer.strip()
+
 # 默认配置
 DEFAULT_CHUNK_SIZE = 500
 DEFAULT_CHUNK_OVERLAP = 50
@@ -164,10 +184,10 @@ class RAG:
                     docs_top = docs_sorted[:top_k]
                     combine_chain = self._get_combine_chain()
                     result = combine_chain.invoke({"context": docs_top, "input": question})
-                    return result.get("answer", "") or "当前知识库中没有相关内容，无法回答。"
+                    return _extract_answer(result) or _EMPTY_ANSWER
                 chain = self._get_rag_chain(top_k)
                 result = chain.invoke({"input": question})
-                return result.get("answer", "") or "当前知识库中没有相关内容，无法回答。"
+                return _extract_answer(result) or _EMPTY_ANSWER
             except Exception as e:
                 chunks = self.retrieve(question, top_k=top_k)
                 context = "\n\n".join(chunks) if chunks else ""

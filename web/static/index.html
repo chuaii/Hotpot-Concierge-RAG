@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🍲 智能火锅点餐顾问 + RAG</title>
+  <title>🍲 智能火锅点餐顾问</title>
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body>
 
 <header>
   <h1>🍲 智能火锅点餐顾问</h1>
-  <p>RAG 知识问答 + 智能点餐顾问 — 有问必答，量身推荐</p>
+  <p>有问必答，量身推荐，一键下单</p>
 </header>
 
 <div id="chat-area">
-  <div class="msg system">欢迎光临！本店为自助餐，每人价格固定。您可以提问火锅知识（如「肥牛涮多久最好？」），也可以直接点餐（如「微辣、不吃羊肉、4个人」）。</div>
+  <div class="msg system">欢迎光临！本店为自助餐，每人价格固定。您可以提问火锅信息，也可以直接点餐。</div>
 </div>
 
 <div id="quick-actions">
-  <button class="quick-btn" data-msg="肥牛涮多久最好吃？">🔍 涮肉技巧</button>
+  <button class="quick-btn" data-msg="涮肉技巧是什么？">🔍 涮肉技巧</button>
   <div class="broth-knowledge-wrap">
     <button type="button" class="broth-trigger" id="broth-trigger" aria-expanded="false">
       🔍 锅底知识 <span class="arrow">▼</span>
@@ -67,7 +67,10 @@
   <button type="button" class="quick-btn" id="btn-confirm-order" data-msg="确认" disabled>✅ 确认下单</button>
 </div>
 
-<script src="/static/js/app.js"></script>
+<script src="/static/js/utils.js"></script>
+  <script src="/static/js/chat.js"></script>
+  <script src="/static/js/dropdowns.js"></script>
+  <script src="/static/js/app.js"></script>
 
 </body>
 </html>

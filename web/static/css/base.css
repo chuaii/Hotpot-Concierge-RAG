@@ -1,0 +1,24 @@
+/* 智能火锅点餐顾问 - 基础样式 */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+               'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+header {
+  background: linear-gradient(135deg, var(--primary), #e67e22);
+  color: #fff;
+  padding: 16px 24px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  flex-shrink: 0;
+}
+header h1 { font-size: 1.3rem; font-weight: 600; }
+header p { font-size: 0.8rem; opacity: 0.85; margin-top: 4px; }
